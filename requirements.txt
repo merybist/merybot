@@ -1,10 +1,8 @@
+telebot==0.0.5
 base91==1.0.1
 crypt_r==3.13.1
-cryptography==44.0.0
 dotenv==0.9.9
-pyTelegramBotAPI==4.26.0
-requests==2.32.3
-requests-file==2.0.0
-requests-ftp==0.3.1
-yt-dlp==2025.3.31
-
+cryptography==44.0.0
+pycryptodome==3.22.0
+pycryptodomex==3.22.0
+moviepy==2.1.2
