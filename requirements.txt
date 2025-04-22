@@ -1,6 +1,5 @@
 telebot==0.0.5
 base91==1.0.1
-crypt_r==3.13.1
 dotenv==0.9.9
 cryptography==44.0.0
 pycryptodome==3.22.0
