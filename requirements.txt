@@ -4,4 +4,5 @@ dotenv==0.9.9
 cryptography==44.0.0
 pycryptodome==3.22.0
 pycryptodomex==3.22.0
+numpy==2.2.4
 moviepy==2.1.2
