@@ -1,8 +1,7 @@
-telebot==0.0.5
+python-dotenv==1.0.0
+pycryptodome==3.19.0
+yt-dlp==2023.11.16
+pyTelegramBotAPI==4.13.0
+requests==2.31.0
+moviepy==1.0.3
 base91==1.0.1
-dotenv==0.9.9
-cryptography==44.0.0
-pycryptodome==3.22.0
-pycryptodomex==3.22.0
-numpy>=1.25.0
-moviepy==2.1.2
