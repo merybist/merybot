@@ -15,6 +15,7 @@ from threading import Thread
 import random
 import string
 from pytube import YouTube
+import time
 
 
 callback_store = {}
@@ -203,19 +204,26 @@ def download_video_youtube(url, custom_label="youtube_video"):
         output_path = os.path.join(DOWNLOADS_FOLDER, f"{sanitize_filename(filename_prefix)}.mp4")
 
         ydl_opts = {
-            'cookiefile': 'youtube_cookies.txt',
-            'proxy': 'socks5://dimadehtyarow:m8HccqCJn8@5.22.206.113:59101',
-            'format': 'bestvideo+bestaudio/best',  # Вибір найкращого формату
+            'cookiefile': 'youtube_cookies.txt',  # Ваші куки для обходу блокувань
+            'proxy': 'socks5://dimadehtyarow:m8HccqCJn8@5.22.206.113:59101',  # Проксі (якщо потрібно)
+            'format': 'bestvideo+bestaudio/best',  # Запитуємо найкраще відео та аудіо
             'outtmpl': output_path,
             'merge_output_format': 'mp4',
             'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
             'quiet': True,
+            'verbose': True,  # Додано для виведення детальних логів
         }
 
-        with YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
+        for attempt in range(3):  # Спроба завантаження до 3 разів
+            try:
+                with YoutubeDL(ydl_opts) as ydl:
+                    ydl.download([url])  # Завантаження відео
+                return output_path, None  # Повертаємо шлях до відео, якщо все успішно
+            except Exception as e:
+                if attempt == 2:  # Якщо це остання спроба, повертаємо помилку
+                    return None, f"❌ Помилка завантаження після кількох спроб: {e}"
+                time.sleep(5)  # Чекаємо 5 секунд перед наступною спробою
 
-        return output_path, None
     except Exception as e:
         return None, f"❌ Помилка завантаження відео: {e}"
 
