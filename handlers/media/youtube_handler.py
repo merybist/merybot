@@ -14,6 +14,7 @@ import uuid
 from threading import Thread
 import random
 import string
+from pytube import YouTube
 
 
 callback_store = {}
@@ -199,25 +200,31 @@ def download_video_youtube(url, custom_label="youtube_video"):
 
         random_id = generate_random_string()
         filename_prefix = f"{random_id}_{custom_label}"
-        output_path = os.path.join(DOWNLOADS_FOLDER, f"{sanitize_filename(filename_prefix)}.%(ext)s")
+        output_path = os.path.join(DOWNLOADS_FOLDER, f"{sanitize_filename(filename_prefix)}.mp4")
 
-        ydl_opts = {
-            "outtmpl": output_path,
-            "format": "bestvideo+bestaudio/best",
-            "merge_output_format": "mp4",
-            "socket_timeout": 120,  # ⏱️ Тут ти можеш поставити навіть 120 або більше секунд
-        }
+        yt = YouTube(url)
+        stream = yt.streams.filter(progressive=True, file_extension='mp4').order_by('resolution').desc().first()
+        stream.download(output_path=output_path)
 
-
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=True)
-            filename = ydl.prepare_filename(info)
-            filename = filename.replace(".webm", ".mp4").replace(".m4a", ".mp4")  # Уніфікація
-
-        return filename, None
+        return output_path, None
     except Exception as e:
         return None, f"❌ Помилка завантаження відео: {e}"
-    
+
+def download_mp3(url):
+    try:
+        ensure_downloads_folder_exists(DOWNLOADS_FOLDER)
+
+        yt = YouTube(url)
+        audio_stream = yt.streams.filter(only_audio=True).first()
+        output_path = audio_stream.download(output_path=DOWNLOADS_FOLDER)
+        base, ext = os.path.splitext(output_path)
+        new_file = base + '.mp3'
+        os.rename(output_path, new_file)
+
+        return new_file, yt.title, None
+    except Exception as e:
+        return None, None, f"❌ Помилка завантаження аудіо: {e}"
+
 def search_youtube(query):
     try:
         with YoutubeDL({'quiet': True}) as ydl:
