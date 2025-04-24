@@ -204,8 +204,6 @@ def download_video_youtube(url, custom_label="youtube_video"):
 
         ydl_opts = {
             'cookiefile': 'youtube_cookies.txt',
-            'username': 'rpf07V1SotRqCC371nrz7Q',
-            'password': 'xyZ-Merybist_!',
             'proxy': 'socks5://dimadehtyarow:m8HccqCJn8@5.22.206.113:59101',
             'format': 'bestvideo+bestaudio/best',
             'outtmpl': output_path,
