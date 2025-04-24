@@ -202,9 +202,16 @@ def download_video_youtube(url, custom_label="youtube_video"):
         filename_prefix = f"{random_id}_{custom_label}"
         output_path = os.path.join(DOWNLOADS_FOLDER, f"{sanitize_filename(filename_prefix)}.mp4")
 
-        yt = YouTube(url)
-        stream = yt.streams.filter(progressive=True, file_extension='mp4').order_by('resolution').desc().first()
-        stream.download(output_path=output_path)
+        ydl_opts = {
+            'format': 'bestvideo+bestaudio/best',
+            'outtmpl': output_path,
+            'merge_output_format': 'mp4',
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',  # Вкажіть ваш юзер-агент
+            'quiet': True,
+        }
+
+        with YoutubeDL(ydl_opts) as ydl:
+            ydl.download([url])
 
         return output_path, None
     except Exception as e:
@@ -214,14 +221,24 @@ def download_mp3(url):
     try:
         ensure_downloads_folder_exists(DOWNLOADS_FOLDER)
 
-        yt = YouTube(url)
-        audio_stream = yt.streams.filter(only_audio=True).first()
-        output_path = audio_stream.download(output_path=DOWNLOADS_FOLDER)
-        base, ext = os.path.splitext(output_path)
-        new_file = base + '.mp3'
-        os.rename(output_path, new_file)
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'outtmpl': os.path.join(DOWNLOADS_FOLDER, '%(title)s.%(ext)s'),
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }],
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',  # Рандомний юзер-агент
+            'quiet': True,
+        }
 
-        return new_file, yt.title, None
+        with YoutubeDL(ydl_opts) as ydl:
+            info_dict = ydl.extract_info(url, download=True)
+            title = info_dict.get('title', None)
+            filename = ydl.prepare_filename(info_dict).replace('.webm', '.mp3')
+
+        return filename, title, None
     except Exception as e:
         return None, None, f"❌ Помилка завантаження аудіо: {e}"
 
