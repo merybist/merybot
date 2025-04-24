@@ -9,7 +9,7 @@ from Crypto.Util.Padding import pad, unpad
 import base64
 import requests
 import uuid
-from moviepy import VideoFileClip
+from moviepy.editor import VideoFileClip
 from functools import wraps
 from dp import cur_bot
 from botcfg import bot
