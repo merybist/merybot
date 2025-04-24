@@ -205,10 +205,10 @@ def download_video_youtube(url, custom_label="youtube_video"):
         ydl_opts = {
             'cookiefile': 'youtube_cookies.txt',
             'proxy': 'socks5://dimadehtyarow:m8HccqCJn8@5.22.206.113:59101',
-            'format': 'best',  # 
+            'format': 'bestvideo+bestaudio/best',  # Вибір найкращого формату
             'outtmpl': output_path,
             'merge_output_format': 'mp4',
-            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3', 
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
             'quiet': True,
         }
 
@@ -218,6 +218,7 @@ def download_video_youtube(url, custom_label="youtube_video"):
         return output_path, None
     except Exception as e:
         return None, f"❌ Помилка завантаження відео: {e}"
+
 
 def download_mp3(url):
     try:
