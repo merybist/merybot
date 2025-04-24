@@ -8,8 +8,8 @@ from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 import base64
 import requests
-from moviepy import VideoFileClip
 import uuid
+from moviepy import VideoFileClip
 from functools import wraps
 from dp import cur_bot
 from botcfg import bot
@@ -124,22 +124,6 @@ def download_mp3_instagram(url, downloads_folder="downloads"):
         return filename, title, None
     except Exception as e:
         return None, None, f"❌ Помилка: {e}"
-
-def convert_local_video_to_mp3(video_path):
-    try:
-        if not os.path.exists(video_path):
-            return None, None, "❌ Відеофайл не знайдено."
-
-        title = os.path.splitext(os.path.basename(video_path))[0]
-        audio_path = video_path.replace(".mp4", ".mp3")
-
-        clip = VideoFileClip(video_path)
-        clip.audio.write_audiofile(audio_path)
-        clip.close()
-
-        return audio_path, title, None
-    except Exception as e:
-        return None, None, f"❌ Помилка конвертації: {e}"
     
 def download_tiktok(url, downloads_folder="downloads"):
     """Завантаження аудіо з TikTok через API tikwm та конвертація у MP3"""
