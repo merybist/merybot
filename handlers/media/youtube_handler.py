@@ -203,6 +203,8 @@ def download_video_youtube(url, custom_label="youtube_video"):
         output_path = os.path.join(DOWNLOADS_FOLDER, f"{sanitize_filename(filename_prefix)}.mp4")
 
         ydl_opts = {
+            'username': 'merybist.t@gmail.com',
+            'password': 'xyZ-Merybist_!',
             'proxy': 'socks5://dimadehtyarow:m8HccqCJn8@5.22.206.113:59101',
             'format': 'bestvideo+bestaudio/best',
             'outtmpl': output_path,
