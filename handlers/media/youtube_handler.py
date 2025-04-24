@@ -203,10 +203,10 @@ def download_video_youtube(url, custom_label="youtube_video"):
         output_path = os.path.join(DOWNLOADS_FOLDER, f"{sanitize_filename(filename_prefix)}.mp4")
 
         ydl_opts = {
+            'proxy': 'socks5://dimadehtyarow:m8HccqCJn8@91.124.110.120:59101',
             'format': 'bestvideo+bestaudio/best',
             'outtmpl': output_path,
             'merge_output_format': 'mp4',
-            'proxy': 'socks5://3.126.147.182:80',
             'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',  # Вкажіть ваш юзер-агент
             'quiet': True,
         }
