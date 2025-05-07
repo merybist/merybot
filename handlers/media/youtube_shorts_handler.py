@@ -6,8 +6,7 @@ import re
 from utils import ensure_downloads_folder_exists
 from utils import sanitize_filename
 from utils import download_mp3
-import yt_dlp
-from yt_dlp import YoutubeDL
+from pytubefix import YouTube
 import uuid
 from threading import Thread
 import random
@@ -86,28 +85,23 @@ def videos(message: Message):
 def generate_random_string(length=8):
     return ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))
 
-def download_video_youtube(url, custom_label="youtube_shorts"):
+def download_video_youtube(url, custom_label="youtube_video"):
     try:
         ensure_downloads_folder_exists(DOWNLOADS_FOLDER)
 
-        random_id = generate_random_string()
-        filename_prefix = f"{random_id}_{custom_label}"
-        output_path = os.path.join(DOWNLOADS_FOLDER, f"{sanitize_filename(filename_prefix)}.%(ext)s")
+        yt = YouTube(url)
+        video_stream = yt.streams.filter(progressive=True, file_extension='mp4').order_by('resolution').desc().first()
 
-        ydl_opts = {
-            "outtmpl": output_path,
-            "format": "bestvideo+bestaudio/best",
-            "merge_output_format": "mp4",
-            "socket_timeout": 120,  # ⏱️ Тут ти можеш поставити навіть 120 або більше секунд
-        }
+        if not video_stream:
+            return None, "❌ Не знайдено відповідного відео для завантаження."
 
+        filename_prefix = f"{generate_random_string()}_{custom_label}"
+        filename = sanitize_filename(filename_prefix) + ".mp4"
+        output_path = os.path.join(DOWNLOADS_FOLDER, filename)
 
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=True)
-            filename = ydl.prepare_filename(info)
-            filename = filename.replace(".webm", ".mp4").replace(".m4a", ".mp4")  # Уніфікація
+        video_stream.download(output_path=DOWNLOADS_FOLDER, filename=filename)
+        return output_path, None
 
-        return filename, None
     except Exception as e:
         return None, f"❌ Помилка завантаження відео: {e}"
 

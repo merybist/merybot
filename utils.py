@@ -9,7 +9,6 @@ from Crypto.Util.Padding import pad, unpad
 import base64
 import requests
 import uuid
-from moviepy.editor import VideoFileClip
 from functools import wraps
 from dp import cur_bot
 from botcfg import bot
@@ -161,9 +160,6 @@ def download_tiktok(url, downloads_folder="downloads"):
             f.write(video_response.content)
 
         # 🎧 Конвертація у MP3
-        clip = VideoFileClip(video_path)
-        clip.audio.write_audiofile(audio_path, logger=None)
-        clip.close()
 
         # 🧹 Видаляємо відео після обробки
         os.remove(video_path)

@@ -1,12 +1,12 @@
-from botcfg import bot, DOWNLOADS_FOLDER
+from botcfg import bot, DOWNLOADS_FOLDER, RAPIDAPI_KEY
 from telebot.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
 from chats import active_chats
 import os
 import re
 from utils import ensure_downloads_folder_exists
 from utils import sanitize_filename
-import yt_dlp
 import uuid
+import requests
 
 
 callback_store = {}
@@ -62,7 +62,7 @@ def videos(message: Message):
             keyboard.add(button) 
             
             with open(video_path, 'rb') as video_file:
-                bot.send_video(message.chat.id, video_file, caption="🔗 Завантажуй відео тут 👉 @MeryLoadBot",reply_markup=keyboard ,timeout=240) #reply_markup=keyboard,
+                bot.send_video(message.chat.id, video_file, caption="🔗 Завантажуй відео тут 👉 @MeryLoadBot" ,timeout=240) #reply_markup=keyboard,
                 
         except Exception as e:
             bot.send_message(message.chat.id, f"❌ Помилка: {e}")
@@ -73,45 +73,44 @@ def videos(message: Message):
 
 def download_videos(url):
     try:
-        ensure_downloads_folder_exists(DOWNLOADS_FOLDER)
-        output_path = os.path.join(DOWNLOADS_FOLDER, "%(title)s.%(ext)s")
-        ydl_opts = {
-            "outtmpl": output_path,
-            "format": "bestvideo+bestaudio/best",
-            "merge_output_format": "mp4",
+        api_url = "https://instagram-reels-downloader-api.p.rapidapi.com/download"
+        headers = {
+            "x-rapidapi-host": "instagram-reels-downloader-api.p.rapidapi.com",
+            "x-rapidapi-key": "c9b4776399msh584913a9dce7762p1928fbjsn973d4d80f527"
         }
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=True)
-            title = sanitize_filename(info.get("title", "Unknown"))
-            filename = os.path.join(DOWNLOADS_FOLDER, f"{title}.mp4")
+        payload = {"url": url}
+        response = requests.post(api_url, json=payload, headers=headers)
+        result = response.json()
+
+        if "media" not in result or not result["media"]:
+            return None, "❌ Не вдалося отримати відео через RapidAPI"
+
+        video_url = result["media"]
+        filename = os.path.join(DOWNLOADS_FOLDER, "video.mp4")
+        r = requests.get(video_url, stream=True)
+        with open(filename, "wb") as f:
+            for chunk in r.iter_content(chunk_size=1024):
+                if chunk:
+                    f.write(chunk)
+
         return filename, None
     except Exception as e:
-        return None, f"❌ Помилка завантаження відео: {e}"
-
+        return None, f"❌ Помилка при завантаженні відео через RapidAPI: {e}"
 
 def download_mp3(url, type):
-    """Завантаження аудіо з відео Instagram через yt-dlp"""
     try:
-        if not url:
-            return None, None, "⚠️ Посилання на Instagram не може бути порожнім."
+        video_path, error = download_videos(url)
+        if error:
+            return None, None, error
 
-        ensure_downloads_folder_exists(DOWNLOADS_FOLDER)
+        mp3_path = video_path.replace(".mp4", ".mp3")
 
-        # Завантажуємо відео через yt-dlp
-        output_path = os.path.join(DOWNLOADS_FOLDER, "%(title)s.%(ext)s")
-        ydl_opts = {
-            "outtmpl": output_path,
-            "format": "bestaudio/best",
-            "postprocessors": [{
-                'key': 'FFmpegAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '192',
-            }],
-        }
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=True)
-            title = sanitize_filename(info.get("title", "Unknown"))
-            filename = os.path.join(DOWNLOADS_FOLDER, f"{title}.mp3")
-        return filename, title, None
+        audio = AudioSegment.from_file(video_path)
+        audio.export(mp3_path, format="mp3", bitrate="192k")
+
+        return mp3_path, os.path.basename(mp3_path), None
     except Exception as e:
-        return None, None, f"❌ Помилка при завантаженні MP3: {e}"
+        return None, None, f"❌ Помилка при конвертації в MP3: {e}"
+    finally:
+        if os.path.exists(video_path):
+            os.remove(video_path)

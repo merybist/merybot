@@ -1,13 +1,11 @@
 
 from dotenv import load_dotenv
 import os
-from Crypto.Cipher import AES
 import yt_dlp
 import re
 from botcfg import bot, DOWNLOADS_FOLDER
 from dp import conn_bot, cur_bot
-from telebot import types
-from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
+from telebot.types import InlineKeyboardMarkup
 
 
 import handlers.id_handler
