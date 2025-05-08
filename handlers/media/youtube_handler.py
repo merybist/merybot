@@ -13,7 +13,7 @@ import uuid
 import random
 import string
 from pytubefix import YouTube
-from moviepy import AudioFileClip
+from moviepy.editor import AudioFileClip
 
 
 callback_store = {}
@@ -174,7 +174,7 @@ def videos(message: Message):
             keyboard.add(button)
 
             with open(video_path, 'rb') as video_file:
-                bot.send_video(message.chat.id, video_file, caption="🔗 Завантажуй відео тут 👉 @MeryLoadBot", reply_markup=keyboard, timeout=240)
+                bot.send_video(message.chat.id, video_file,width=1920,height=1080 , caption="🔗 Завантажуй відео тут 👉 @MeryLoadBot", reply_markup=keyboard, timeout=240)
         except Exception as e:
             error_message = f"❌ Помилка: {e}"
             bot.send_message(message.chat.id, error_message)
@@ -198,16 +198,25 @@ def download_video_youtube(url, custom_label="youtube_video"):
         ensure_downloads_folder_exists(DOWNLOADS_FOLDER)
 
         yt = YouTube(url)
-        video_stream = yt.streams.filter(progressive=True, file_extension='mp4').order_by('resolution').desc().first()
+        RES = '1080p'
 
-        if not video_stream:
-            return None, "❌ Не знайдено відповідного відео для завантаження."
+        for idx,i in enumerate(yt.streams):
+            if i.resolution ==RES:
+                print(idx)
+                print(i.resolution)
+                break
+        print(yt.streams[idx])
+        
+
+        # if not video_stream:
+        #     return None, "❌ Не знайдено відповідного відео для завантаження."
 
         filename_prefix = f"{generate_random_string()}_{custom_label}"
         filename = sanitize_filename(filename_prefix) + ".mp4"
         output_path = os.path.join(DOWNLOADS_FOLDER, filename)
 
-        video_stream.download(output_path=DOWNLOADS_FOLDER, filename=filename)
+        # video_stream.download(output_path=DOWNLOADS_FOLDER, filename=filename)
+        yt.streams[idx].download(output_path=DOWNLOADS_FOLDER, filename=filename)
         return output_path, None
 
     except Exception as e:

@@ -1,7 +1,6 @@
 
 from dotenv import load_dotenv
 import os
-import yt_dlp
 import re
 from botcfg import bot, DOWNLOADS_FOLDER
 from dp import conn_bot, cur_bot
@@ -11,8 +10,6 @@ from telebot.types import InlineKeyboardMarkup
 import handlers.id_handler
 import handlers.sendto_handler
 import handlers.sendall_handler
-import handlers.mp4_handler
-import handlers.mp3_handler
 import handlers.list_handler
 import handlers.delhistory_handler
 import handlers.media.tiktok_handler
@@ -49,29 +46,6 @@ def split_text(text, max_length=4096):
     """
     return [text[i:i + max_length] for i in range(0, len(text), max_length)]
 
-
-def download_mp3(url):
-    """Завантаження аудіо з YouTube або YouTube Music"""
-    try:
-        output_path = "downloads/%(title)s.%(ext)s"
-        ydl_opts = {
-            "outtmpl": output_path,
-            "format": "bestaudio/best",
-            "postprocessors": [{
-                "key": "FFmpegExtractAudio",
-                "preferredcodec": "mp3",
-                "preferredquality": "192",
-            }]
-        }
-        
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=True)
-            filename = ydl.prepare_filename(info).replace(".webm", ".mp3").replace(".m4a", ".mp3")
-            title = info.get("title", "Unknown")
-        
-        return filename, title, None
-    except Exception as e:
-        return None, None, f"❌ Помилка: {e}"
 
 def ensure_downloads_folder_exists():
     if not os.path.exists(DOWNLOADS_FOLDER):

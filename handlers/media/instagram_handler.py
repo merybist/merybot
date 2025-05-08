@@ -6,34 +6,37 @@ import re
 from utils import ensure_downloads_folder_exists
 from utils import sanitize_filename
 import uuid
-import requests
+import string
+import random
+import instaloader
+
 
 
 callback_store = {}
 
-@bot.callback_query_handler(func=lambda call: call.data.startswith("convert_mp3_instagram"))
-def convert_to_mp3_instagram(call):
-    parts = call.data.split("|")
-    unique_id = parts[1]
+# @bot.callback_query_handler(func=lambda call: call.data.startswith("convert_mp3_instagram"))
+# def convert_to_mp3_instagram(call):
+#     parts = call.data.split("|")
+#     unique_id = parts[1]
 
-    url = callback_store.get(unique_id)
-    bot.send_message(call.message.chat.id, "⏳ Конвертую у MP3...")
+#     url = callback_store.get(unique_id)
+#     bot.send_message(call.message.chat.id, "⏳ Конвертую у MP3...")
 
-    # Завантажуємо аудіо з відео
-    filename, title, error = download_mp3(url, "video")
+#     # Завантажуємо аудіо з відео
+#     filename, title, error = download_mp3(url, "video")
 
-    if error:
-        bot.send_message(call.message.chat.id, error)
-        return
+#     if error:
+#         bot.send_message(call.message.chat.id, error)
+#         return
 
-    try:
-        with open(filename, "rb") as audio:
-            bot.send_audio(call.message.chat.id, audio, caption=f"🔗 Завантажуй аудіо тут 👉 @MeryLoadBot")
-    except Exception as e:
-        bot.send_message(call.message.chat.id, f"❌ Помилка: {e}")
-    finally:
-        if os.path.exists(filename):
-            os.remove(filename)
+#     try:
+#         with open(filename, "rb") as audio:
+#             bot.send_audio(call.message.chat.id, audio, caption=f"🔗 Завантажуй аудіо тут 👉 @MeryLoadBot")
+#     except Exception as e:
+#         bot.send_message(call.message.chat.id, f"❌ Помилка: {e}")
+#     finally:
+#         if os.path.exists(filename):
+#             os.remove(filename)
 
 @bot.message_handler(func=lambda message: message.from_user.id not in active_chats and re.match(r"(https?://)?(www\.)?(instagram\.com/reel/)([a-zA-Z0-9_-]+)", message.text))
 def videos(message: Message):
@@ -71,46 +74,19 @@ def videos(message: Message):
             if os.path.exists(video_path):
                 os.remove(video_path)
 
-def download_videos(url):
+def generate_random_string(length=8):
+    return ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))
+
+def download_videos(shortcode, custom_label='reels'):
     try:
-        api_url = "https://instagram-reels-downloader-api.p.rapidapi.com/download"
-        headers = {
-            "x-rapidapi-host": "instagram-reels-downloader-api.p.rapidapi.com",
-            "x-rapidapi-key": "c9b4776399msh584913a9dce7762p1928fbjsn973d4d80f527"
-        }
-        payload = {"url": url}
-        response = requests.post(api_url, json=payload, headers=headers)
-        result = response.json()
-
-        if "media" not in result or not result["media"]:
-            return None, "❌ Не вдалося отримати відео через RapidAPI"
-
-        video_url = result["media"]
-        filename = os.path.join(DOWNLOADS_FOLDER, "video.mp4")
-        r = requests.get(video_url, stream=True)
-        with open(filename, "wb") as f:
-            for chunk in r.iter_content(chunk_size=1024):
-                if chunk:
-                    f.write(chunk)
-
-        return filename, None
+        filename_prefix = f"{generate_random_string()}_{custom_label}"
+        filename = sanitize_filename(filename_prefix) + ".mp4"
+        output_path = os.path.join('downloads', filename)
+        print(output_path)
+        loader = instaloader.Instaloader()
+        post = instaloader.Post.from_shortcode(loader.context,"DJOwSzAtD72")
+        loader.download_post(post, output_path)
+       
+        return output_path, None
     except Exception as e:
-        return None, f"❌ Помилка при завантаженні відео через RapidAPI: {e}"
-
-def download_mp3(url, type):
-    try:
-        video_path, error = download_videos(url)
-        if error:
-            return None, None, error
-
-        mp3_path = video_path.replace(".mp4", ".mp3")
-
-        audio = AudioSegment.from_file(video_path)
-        audio.export(mp3_path, format="mp3", bitrate="192k")
-
-        return mp3_path, os.path.basename(mp3_path), None
-    except Exception as e:
-        return None, None, f"❌ Помилка при конвертації в MP3: {e}"
-    finally:
-        if os.path.exists(video_path):
-            os.remove(video_path)
+        print(e)
