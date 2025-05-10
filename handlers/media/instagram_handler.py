@@ -8,7 +8,7 @@ from utils import sanitize_filename
 import uuid
 import string
 import random
-import instaloader
+import requests
 
 
 
@@ -77,16 +77,34 @@ def videos(message: Message):
 def generate_random_string(length=8):
     return ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))
 
-def download_videos(shortcode, custom_label='reels'):
+def download_videos(instagram_url, rapidapi_key, rapidapi_host):
+    url = "https://instagram-reels-downloader-api.p.rapidapi.com/download"
+
+    querystring = {"url": instagram_url}
+
+    headers = {
+        "x-rapidapi-key": "c9b4776399msh584913a9dce7762p1928fbjsn973d4d80f527",
+	    "x-rapidapi-host": "instagram-reels-downloader-api.p.rapidapi.com"
+    }
+
     try:
-        filename_prefix = f"{generate_random_string()}_{custom_label}"
-        filename = sanitize_filename(filename_prefix) + ".mp4"
-        output_path = os.path.join('downloads', filename)
-        print(output_path)
-        loader = instaloader.Instaloader()
-        post = instaloader.Post.from_shortcode(loader.context,"DJOwSzAtD72")
-        loader.download_post(post, output_path)
-       
-        return output_path, None
+        response = requests.get(url, headers=headers, params=querystring)
+        response.raise_for_status()
+
+        data = response.json()
+        video_url = data.get("media")
+        if not video_url:
+            return None, "❌ Не знайдено відео за посиланням."
+
+        # Скачуємо файл
+        video_data = requests.get(video_url).content
+        filename = "instagram_video.mp4"
+        with open(filename, "wb") as f:
+            f.write(video_data)
+
+        return filename, None
+
+    except requests.RequestException as e:
+        return None, f"❌ HTTP помилка: {e}"
     except Exception as e:
-        print(e)        
+        return None, f"❌ Помилка: {e}"   

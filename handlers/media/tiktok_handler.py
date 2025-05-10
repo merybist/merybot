@@ -1,13 +1,16 @@
 from botcfg import bot, DOWNLOADS_FOLDER
-from telebot.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
+from telebot.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 from chats import active_chats
 import os
 import re
 from utils import ensure_downloads_folder_exists
-from utils import sanitize_filename, download_tiktok, download_mp3
+from utils import sanitize_filename, download_tiktok
 # import yt_dlp
 import uuid
 import requests
+import requests
+import string 
+import random
 
 callback_store = {}
 
@@ -45,58 +48,47 @@ def convert_to_mp3(call):
 @bot.message_handler(func=lambda message: message.text and message.from_user.id not in active_chats and re.match(r"(https?://)?(www\.)?(tiktok\.com/.+|vm\.tiktok\.com/.+|vt\.tiktok\.com/.+)", message.text))
 def videos(message: Message):
     print("tiktok")
-    tiktok_url_pattern = r"(https?://)?(www\.)?(tiktok\.com/.+|vm\.tiktok\.com/.+|vt\.tiktok\.com/.+)"
-    if re.match(tiktok_url_pattern, message.text):
-        url = message.text.strip()
-        bot.send_message(message.chat.id, "⏳ Завантажую TikTok...")
+    url = message.text.strip()
+    bot.send_message(message.chat.id, "⏳ Завантажую TikTok...")
 
-        result, content_type_or_error = download_videos(url, "video")
+    result, content_type, error = download_tiktok(url,)
 
-        # Якщо це помилка
-        if isinstance(content_type_or_error, str) and content_type_or_error.startswith("❌"):
-            bot.send_message(message.chat.id, content_type_or_error)
-            return
+    if error:
+        bot.send_message(message.chat.id, error)
+        return
 
-        if result is None:
-            bot.send_message(message.chat.id, "❌ Помилка: не вдалося завантажити відео.\n\nСпробуйте знову надіслати посилання на відео.")
-            return
+    try:
+        if content_type == "photo":
+            media_group = []
+            for path in result:
+                with open(path, "rb") as img_file:
+                    media_group.append(InputMediaPhoto(img_file.read()))
+            bot.send_media_group(message.chat.id, media_group)
+            bot.send_message(message.chat.id, "📸 Завантажуй фото тут 👉 @MeryLoadBot")
 
-        try:
-            if content_type_or_error == "photo":
-                from telebot.types import InputMediaPhoto
+            for path in result:
+                if os.path.exists(path):
+                    os.remove(path)
+            os.rmdir(os.path.dirname(result[0]))
+        else:
+            unique_id = str(uuid.uuid4())
+            callback_store[unique_id] = url
+            keyboard = InlineKeyboardMarkup()
+            keyboard.add(InlineKeyboardButton("🎵 Завантажити у MP3", callback_data=f"convert_mp3_tiktok|{unique_id}"))
 
-                media_group = []
-                for path in result:
-                    with open(path, "rb") as img_file:
-                        media_group.append(InputMediaPhoto(img_file.read()))
+            with open(result, "rb") as video_file:
+                bot.send_video(message.chat.id, video_file, caption="🔗 Завантажуй відео тут 👉 @MeryLoadBot", reply_markup=keyboard, timeout=240)
 
-                bot.send_media_group(message.chat.id, media_group)
-                bot.send_message(message.chat.id, "📸 Завантажуй фото тут 👉 @MeryLoadBot")
+            if os.path.exists(result):
+                os.remove(result)
 
-                # Видаляємо фото
-                for path in result:
-                    if os.path.exists(path):
-                        os.remove(path)
-                os.rmdir(os.path.dirname(result[0]))  # видаляємо тимчасову теку
-            else:
-                # Звичайне відео
-                unique_id = str(uuid.uuid4())
-                callback_store[unique_id] = url
-                button = InlineKeyboardButton("🎵 Завантажити у MP3", callback_data=f"convert_mp3_tiktok|{unique_id}")
-                keyboard = InlineKeyboardMarkup()
-                keyboard.add(button)
+    except Exception as e:
+        bot.send_message(message.chat.id, f"❌ Помилка: {e}")
 
-                with open(result, 'rb') as video_file:
-                    bot.send_video(message.chat.id, video_file, caption="🔗 Завантажуй відео тут 👉 @MeryLoadBot", reply_markup=keyboard, timeout=240)
+def generate_random_string(length=8):
+    return ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))
 
-                if os.path.exists(result):
-                    os.remove(result)
-
-        except Exception as e:
-            bot.send_message(message.chat.id, f"❌ Помилка: {e}")
-
-
-def download_videos(url, type):
+def download_tiktok(url, type="tiktok"):
     try:
         ensure_downloads_folder_exists(DOWNLOADS_FOLDER)
         api_url = f"https://tikwm.com/api/?url={url}"
@@ -105,11 +97,11 @@ def download_videos(url, type):
         data = response.json()
 
         if not data.get("data"):
-            return None, "⚠️ Не вдалося отримати відео з API."
+            return None, None, "⚠️ Не вдалося отримати відео з API."
 
         post_data = data["data"]
 
-        # Перевіряємо, чи це пост з фото
+        # Обробка фото
         if "images" in post_data:
             image_urls = post_data["images"]
             image_folder = os.path.join(DOWNLOADS_FOLDER, str(uuid.uuid4()))
@@ -123,23 +115,23 @@ def download_videos(url, type):
                     f.write(img_data)
                 image_paths.append(img_path)
 
-            return image_paths, "photo"
-        
-        # Інакше — це відео
-        if not post_data.get("play"):
-            return None, "⚠️ Не вдалося отримати відео з API."
+            return image_paths, "photo", None
 
-        video_url = post_data["play"]
-        filename = sanitize_filename("video")
-        full_path = os.path.join(DOWNLOADS_FOLDER, f"{filename}.mp4")
+        # Обробка відео чи mp3
+        video_url = post_data.get("play")
+        if not video_url:
+            return None, None, "⚠️ Не вдалося отримати відео з API."
+
+        label = "video" if type == "video" else "audio"
+        filename_prefix = f"{generate_random_string()}_{label}"
+        filename = sanitize_filename(filename_prefix) + ".mp4"
+        output_path = os.path.join(DOWNLOADS_FOLDER, filename)
 
         video_content = requests.get(video_url).content
-        with open(full_path, "wb") as f:
+        with open(output_path, "wb") as f:
             f.write(video_content)
 
-        return full_path, "video"
+        return output_path, "video", None
 
     except Exception as e:
-        return None, f"❌ Помилка завантаження відео: {e}"
-
-
+        return None, None, f"❌ Помилка завантаження: {e}"
