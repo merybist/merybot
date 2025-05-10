@@ -124,7 +124,7 @@ def download_tiktok(url, type="tiktok"):
 
         label = "video" if type == "video" else "audio"
         filename_prefix = f"{generate_random_string()}_{label}"
-        filename = sanitize_filename(filename_prefix) + ".mp4"
+        filename = sanitize_filename(filename_prefix)
         output_path = os.path.join(DOWNLOADS_FOLDER, filename)
 
         video_content = requests.get(video_url).content
