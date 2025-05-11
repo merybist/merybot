@@ -4,6 +4,8 @@ import re
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 import base64
+import datetime
+from datetime import time
 
 def encrypt_aes(text, key):
     cipher = AES.new(key, AES.MODE_CBC, key)
