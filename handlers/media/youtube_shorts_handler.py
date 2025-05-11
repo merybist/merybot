@@ -5,7 +5,6 @@ import os
 import re
 from utils import ensure_downloads_folder_exists
 from utils import sanitize_filename
-from utils import download_mp3
 from pytubefix import YouTube
 import uuid
 from threading import Thread
