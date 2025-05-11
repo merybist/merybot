@@ -24,7 +24,9 @@ import handlers.chathelp_handler
 import handlers.chatstop_handler
 import handlers.generate_password_handler
 import handlers.help_handler
-import media
+import handlers.media.youtube_handler
+import handlers.media.instagram_handler
+import handlers.media.tiktok_handler
 
 
 @bot.message_handler(commands=['start'])
