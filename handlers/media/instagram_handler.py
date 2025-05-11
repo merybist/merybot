@@ -57,12 +57,10 @@ def videos(message: Message):
         url = message.text.strip()
         bot.send_message(message.chat.id, "⏳ Завантажую Instagram...")
    
-        video_path= download_reel(url)
-        error = None
-
-        if error:
-            print(error)
-            bot.send_message(message.chat.id, error)
+        try:
+            video_path = download_reel(url)
+        except Exception as e:
+            bot.send_message(message.chat.id, str(e))
             return
 
         if video_path is None:
@@ -144,5 +142,7 @@ if __name__ == "__main__":
     try:
         video_path = download_reel(reel_url)
         print(f"Reel downloaded to: {video_path}")
+    except instaloader.exceptions.BadResponseException:
+        raise Exception("❌ Не вдалося отримати інформацію про відео. Можливо, акаунт приватний або Instagram тимчасово заблокував доступ.")
     except Exception as e:
-        print(f"Error downloading reel: {e}")
+        raise Exception(f"❌ Помилка при завантаженні: {str(e)}")
