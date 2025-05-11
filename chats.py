@@ -1,3 +1,3 @@
-active_chats = {}  # Словник для збереження активних чатів
-user_states = {}  # Словник для збереження станів користувачів
-chat_sessions = {} # Словник для збереження сесій чатів
+active_chats = {}  
+user_states = {}  
+chat_sessions = {} 

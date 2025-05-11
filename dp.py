@@ -37,4 +37,7 @@ cur_bot.execute('''CREATE TABLE IF NOT EXISTS user_passwords (
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 )''')
 
+cur_bot.execute('''CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, message_encoded TEXT, message_decoded TEXT, timestamp TEXT)''')
+cur_bot.execute('''CREATE TABLE IF NOT EXISTS messages_aes(id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, message_encoded TEXT, message_decoded TEXT, pass_aes TEXT ,timestamp TEXT)''')
+
 conn_bot.commit()
