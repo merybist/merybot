@@ -1,9 +1,9 @@
 python-dotenv==1.0.0
-pycryptodome==3.19.0
+pycryptodome==3.19.1
 cryptography==44.0.3
 pytubefix==8.13.1
 pyTelegramBotAPI==4.13.0
-requests==2.31.0
+requests==2.32.0
 moviepy==1.0.3
 base91==1.0.1
 instaloader
