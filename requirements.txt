@@ -1,5 +1,5 @@
 python-dotenv==1.0.0
-pycryptodome==3.19.0
+pycryptodome==3.19.1
 cryptography==44.0.3
 pytubefix==8.13.1
 pyTelegramBotAPI==4.13.0
