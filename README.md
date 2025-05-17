@@ -1,33 +1,51 @@
-MeryLoadBot 📥
+# Video Downloader Bot
 
-🇺🇦
-MeryLoadBot — це Telegram-бот, який допоможе швидко завантажити відео та музику з популярних платформ.
+This is a Telegram bot that allows users to download videos from YouTube, TikTok, and Instagram. Simply send a link to the bot, and it will fetch and send you the video file.
 
-    Що вміє бот:
-- 🎬 Завантаження відео з:
-  - YouTube
-  - Instagram (Reels)
-  - TikTok
-- 🎵 Конвертація відео у MP3
-- 👥 Працює як у приватних повідомленнях, так і в групах
+## Features
 
-    Як користуватись:
-1. Надішліть боту посилання на відео з YouTube, Instagram або TikTok
-2. Отримайте відео або конвертуйте його в MP3 за допомогою кнопки
+- Download videos from **YouTube**
+- Download videos from **TikTok**
+- Download videos from **Instagram**
+- Simple and user-friendly interface
 
----
+## Installation
 
-🇬🇧 
-MeryLoadBot is a Telegram bot that helps you quickly download videos and music from popular platforms.
+### 1. Clone the repository
 
-    What the bot can do:
-- 🎬 Download videos from:
-  - YouTube
-  - Instagram (Reels)
-  - TikTok
-- 🎵 Convert videos to MP3
-- 👥 Works in both private chats and groups
+```bash
+git clone https://github.com/Tribedn/merybot
+cd merybot
+```
 
-    How to use:
-1. Send the bot a link to a video from YouTube, Instagram or TikTok
-2. Get the video or convert it to MP3 with a button
+### 2. Configure the bot
+
+Open the `botcfg.py` file in the project root and enter your Telegram bot token and any other required API keys directly into the file.
+
+### 3. (Optional) Run your own local Telegram Bot API server
+
+If you want to use your own local Telegram Bot API server, follow the official guide here: [How to build and run Telegram Bot API server locally](https://tdlib.github.io/telegram-bot-api/build.html)
+
+### 4. Install dependencies and run the bot
+
+1. Install Python 3.10+ and [pip](https://pip.pypa.io/en/stable/).
+2. Install dependencies:
+
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+3. Run the bot:
+
+    ```bash
+    python main.py
+    ```
+
+## Usage
+
+- Send a YouTube, TikTok, or Instagram video link to the bot in Telegram.
+- The bot will process the link and send you the video file.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENCE](LICENCE) file for details.
