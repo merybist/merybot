@@ -6,13 +6,15 @@ import re
 import uuid
 import string
 import random
-import instaloader
 import re
 from pathlib import Path
 from moviepy.editor import VideoFileClip
-
+import requests
 
 callback_store = {}
+
+RAPIDAPI_KEY = ""
+RAPIDAPI_HOST = ""
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("convert_mp3|"))
 def convert_to_mp3_instagram(call):
@@ -101,48 +103,35 @@ def convert_video_to_mp3(video_path):
 
 def download_reel(reel_url):
     """
-    Download Instagram reel from URL and return path to the downloaded file.
-    
-    Args:
-        reel_url (str): Full URL to the Instagram reel
-        
-    Returns:
-        str: Path to the downloaded .mp4 file
+    Завантажує Instagram Reel через RapidAPI і повертає шлях до локального файлу.
     """
-    # Extract shortcode from URL (handles both /p/ and /reel/ formats)
-    shortcode = re.search(r'/(?:p|reel)/([^/?]+)', reel_url)
-    if not shortcode:
-        raise ValueError("Invalid Instagram reel URL")
-    
-    # Initialize Instaloader
-    L = instaloader.Instaloader(
-        download_videos=True,
-        download_video_thumbnails=False,
-        download_geotags=False,
-        download_comments=False,
-        save_metadata=False,
-        compress_json=False,
-        filename_pattern="{shortcode}"  # This will use the shortcode as filename
-    )
-    
-    # Download the post
-    post = instaloader.Post.from_shortcode(L.context, shortcode.group(1))
-    L.download_post(post, target="downloads")
-    
-    # Find the downloaded .mp4 file
-    download_dir = Path("downloads")
-    mp4_file = download_dir / f"{shortcode.group(1)}.mp4"
-    
-    if not mp4_file.exists():
-        raise FileNotFoundError("No .mp4 file found after download")
-    
-    return str(mp4_file)
+    url = "https://instagram-reels-downloader-api.p.rapidapi.com/download"
+    querystring = {"url": reel_url}
 
-if __name__ == "__main__":
-    # Example usage
-    reel_url = "https://www.instagram.com/reel/DJOwSzAtD72/?igsh=ZDgxaWR3cHhnZjFi"
-    try:
-        video_path = download_reel(reel_url)
-        print(f"Reel downloaded to: {video_path}")
-    except Exception as e:
-        print(f"Error downloading reel: {e}")
+    headers = {
+        "x-rapidapi-key": RAPIDAPI_KEY,
+        "x-rapidapi-host": RAPIDAPI_HOST
+    }
+
+    response = requests.get(url, headers=headers, params=querystring)
+
+    if response.status_code != 200:
+        raise Exception(f"RapidAPI error: {response.status_code} - {response.text}")
+
+    data = response.json()
+    # Припустимо, в відповіді є поле 'video_url' або схоже, де лежить пряме посилання на відео
+    video_url = data.get('video_url')
+    if not video_url:
+        raise Exception("Не знайдено відео в відповіді RapidAPI")
+
+    # Завантажуємо відео локально
+    local_filename = "downloads/" + reel_url.rstrip('/').split('/')[-1] + ".mp4"
+    os.makedirs(os.path.dirname(local_filename), exist_ok=True)
+
+    with requests.get(video_url, stream=True) as r:
+        r.raise_for_status()
+        with open(local_filename, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=8192):
+                f.write(chunk)
+
+    return local_filename
