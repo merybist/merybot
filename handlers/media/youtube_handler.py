@@ -46,7 +46,7 @@ def convert_to_mp3_youtube(call):
 
 @bot.message_handler(func=lambda message: message.from_user.id not in active_chats and re.match(r"(https?://)?(www\.)?(youtube\.com/watch\?v=|youtu\.be/)([a-zA-Z0-9_-]+)", message.text))
 def videos(message: Message):
-    youtube_url_pattern = r"(https?://)?(www\.)?(youtube\.com/watch\?v=|youtu\.be/)([a-zA-Z0-9_-]+)"
+    youtube_url_pattern = r"(https?://)?(www\.)?(m\.)?(youtube\.com/watch\?v=|youtu\.be/)([a-zA-Z0-9_-]+)"
     if re.match(youtube_url_pattern, message.text):
         url = message.text.strip()
         unique_id = str(uuid.uuid4())
