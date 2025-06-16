@@ -5,6 +5,5 @@ services:
       dockerfile: Dockerfile
     volumes:
       - .:/app
-    env_file: .env
     container_name: merybot
     restart: always
