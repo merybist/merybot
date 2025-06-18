@@ -4,3 +4,4 @@ pyTelegramBotAPI
 requests
 moviepy
 instaloader
+psycopg2-binary
